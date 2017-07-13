@@ -7,4 +7,6 @@
     <string name="note_date">Note date</string>
     <string name="note_title">Note title</string>
     <string name="note_important">Important</string>
+    <string name="first_item_button">First Item</string>
+    <string name="last_item_button">Last Item</string>
 </resources>

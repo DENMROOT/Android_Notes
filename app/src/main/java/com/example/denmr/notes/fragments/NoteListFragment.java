@@ -12,13 +12,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.denmr.notes.NoteActivity;
+import com.example.denmr.notes.NotePagerActivity;
 import com.example.denmr.notes.R;
 import com.example.denmr.notes.model.Note;
 import com.example.denmr.notes.model.NoteStore;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -114,7 +113,7 @@ public class NoteListFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            Intent intent = NoteActivity.newIntent(getActivity(), mNote.getId());
+            Intent intent = NotePagerActivity.newIntent(getActivity(), mNote.getId());
 
             position = getLayoutPosition();
             startActivityForResult(intent, position);
@@ -169,7 +168,7 @@ public class NoteListFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            Intent intent = NoteActivity.newIntent(getActivity(), mNote.getId());
+            Intent intent = NotePagerActivity.newIntent(getActivity(), mNote.getId());
 
             position = getLayoutPosition();
             startActivityForResult(intent, position);
