@@ -3,6 +3,7 @@ package com.example.denmr.notes.fragments;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -27,6 +28,7 @@ import static android.widget.CompoundButton.*;
 
 public class NoteFragment extends Fragment {
     public static final String NOTE_ID = "note_id";
+    private static final String DIALOG_DATE_TAG = "note_date_dialog_tag";
     private Note note;
     private EditText mTitleField;
     private Button mDateButton;
@@ -78,7 +80,14 @@ public class NoteFragment extends Fragment {
 
         mDateButton = (Button) v.findViewById(R.id.note_date);
         mDateButton.setText(note.getDate().toString());
-        mDateButton.setEnabled(false);
+        mDateButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager fragmentManager = getFragmentManager();
+                DatePickerFragment dialog = new DatePickerFragment();
+                dialog.show(fragmentManager, DIALOG_DATE_TAG);
+            }
+        });
 
         mSolvedCheckBox = (CheckBox) v.findViewById(R.id.note_solved);
         mSolvedCheckBox.setChecked(note.isSolved());

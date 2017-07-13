@@ -77,7 +77,7 @@ public class NotePagerActivity extends AppCompatActivity {
 
         if (noteId == notes.get(0).getId()) {
             firstButton.setEnabled(false);
-        } else if (noteId == notes.get(notes.size()).getId()) {
+        } else if (noteId == notes.get(notes.size()-1).getId()) {
             lastButton.setEnabled(false);
         }
 
@@ -100,7 +100,7 @@ public class NotePagerActivity extends AppCompatActivity {
         lastButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UUID firstNoteId = notes.get(notes.size()).getId();
+                UUID firstNoteId = notes.get(notes.size()-1).getId();
 
                 for (int i = 0; i < notes.size(); i++) {
                     if (notes.get(i).getId().equals(firstNoteId)) {
