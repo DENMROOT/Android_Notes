@@ -10,4 +10,10 @@
     <string name="first_item_button">First Item</string>
     <string name="last_item_button">Last Item</string>
     <string name="date_picker_alert_header">Date of note:</string>
+
+    <!-- Action Tab-->
+    <string name="new_note">New Note</string>
+    <string name="show_subtitle">Show Subtitle</string>
+    <string name="hide_subtitle">Hide Subtitle</string>
+    <string name="subtitle_format">%1$d notes</string>
 </resources>

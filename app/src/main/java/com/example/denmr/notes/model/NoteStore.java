@@ -20,14 +20,13 @@ public class NoteStore {
 
     private NoteStore(Context context) {
         notes = new LinkedHashMap<>();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 3; i++) {
             Note newNote = new Note();
             newNote.setTitle("Note #" + i);
             newNote.setSolved(i % 2 == 0); // Every other one
             newNote.setImportant(i % 2 == 0); // Every other one
             notes.put(newNote.getId(), newNote);
         }
-
     }
 
     public static NoteStore get(Context context) {
@@ -43,5 +42,9 @@ public class NoteStore {
 
     public Note getNote(UUID id){
         return  notes.get(id);
+    }
+
+    public void addNote(Note note) {
+        notes.put(note.getId(), note);
     }
 }
