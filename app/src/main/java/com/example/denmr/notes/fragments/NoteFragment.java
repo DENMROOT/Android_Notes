@@ -2,12 +2,18 @@ package com.example.denmr.notes.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.ShareCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -37,12 +43,15 @@ public class NoteFragment extends Fragment {
 
     //Target fragment code
     private static final int REQUEST_DATE_CODE = 0;
+    private static final int REQUEST_CONTACT = 1;
 
     private Note note;
     private EditText mTitleField;
     private Button mDateButton;
     private CheckBox mSolvedCheckBox;
     private CheckBox mImportantCheckBox;
+    private Button mContactButton;
+    private Button mSendReportButton;
 
     public static NoteFragment newInstance(UUID noteId) {
         Bundle args = new Bundle();
@@ -117,6 +126,43 @@ public class NoteFragment extends Fragment {
             }
         });
 
+        final Intent pickContact = new Intent(Intent.ACTION_PICK,
+                ContactsContract.Contacts.CONTENT_URI);
+
+        // check if are able to access contact data, if no - disable mContactButton
+        PackageManager packageManager = getActivity().getPackageManager();
+        if (packageManager.resolveActivity(pickContact,
+                PackageManager.MATCH_DEFAULT_ONLY) == null) {
+            mContactButton.setEnabled(false);
+        }
+
+        mContactButton = (Button) v.findViewById(R.id.add_contact);
+        mContactButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startActivityForResult(pickContact, REQUEST_CONTACT);
+            }
+        });
+
+        mSendReportButton = (Button) v.findViewById(R.id.send_report);
+        mSendReportButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = ShareCompat.IntentBuilder
+                        .from(getActivity())
+                        .setType("text/plain")
+                        .getIntent()
+                        .putExtra(Intent.EXTRA_TEXT, getCrimeReport())
+                        .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.note_report_subject));
+
+                i = Intent.createChooser(i, getString(R.string.send_report));
+                startActivity(i);
+            }
+        });
+
+        if (note.getContact() != null) {
+            mContactButton.setText(note.getContact());
+        }
+
         return v;
     }
 
@@ -131,6 +177,30 @@ public class NoteFragment extends Fragment {
                     .getSerializableExtra(DatePickerFragment.EXTRA_DATE);
             note.setDate(date);
             updateDate();
+        } else if (requestCode == REQUEST_CONTACT && data != null) {
+            Uri contactUri = data.getData();
+            // Specify which fields you want your query to return
+            // values for
+            String[] queryFields = new String[]{
+                    ContactsContract.Contacts.DISPLAY_NAME
+            };
+            // Perform your query - the contactUri is like a "where"
+            // clause here
+
+            try (Cursor c = getActivity().getContentResolver()
+                    .query(contactUri, queryFields, null, null, null)) {
+                // Double-check that you actually got results
+                if (c == null || c.getCount() == 0) {
+                    return;
+                }
+
+                // Pull out the first column of the first row of data -
+                // that is your suspect's name
+                c.moveToFirst();
+                String contact = c.getString(0);
+                note.setContact(contact);
+                mContactButton.setText(contact);
+            }
         }
     }
 
@@ -149,7 +219,40 @@ public class NoteFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        NoteStore.get(getActivity())
+                .updateNote(note);
+    }
+
     private void updateDate() {
         mDateButton.setText(note.getDate().toString());
+    }
+
+    private String getCrimeReport() {
+        String solvedString = null;
+        if (note.isSolved()) {
+            solvedString = getString(R.string.note_report_solved);
+        } else {
+            solvedString = getString(R.string.note_report_unsolved);
+        }
+
+        String dateFormat = "EEE, MMM dd";
+        String dateString = DateFormat.format(dateFormat,
+                note.getDate()).toString();
+
+        String suspect = note.getContact();
+        if (suspect == null) {
+            suspect = getString(R.string.note_report_no_contact);
+        } else {
+            suspect = getString(R.string.note_report_contact, suspect);
+        }
+
+        String report = getString(R.string.note_report,
+                note.getTitle(), dateString, solvedString, suspect);
+
+        return report;
     }
 }

@@ -13,9 +13,14 @@ public class Note {
     private Date date;
     private boolean solved;
     private boolean important;
+    private String contact;
 
     public Note() {
-        this.id = UUID.randomUUID();
+        this(UUID.randomUUID());
+    }
+
+    public Note(UUID id) {
+        this.id = id;
         this.date = new Date();
     }
 
@@ -53,5 +58,13 @@ public class Note {
 
     public void setImportant(boolean important) {
         this.important = important;
+    }
+
+    public String getContact() {
+        return contact;
+    }
+
+    public void setContact(String contact) {
+        this.contact = contact;
     }
 }

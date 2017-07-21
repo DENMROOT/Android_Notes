@@ -40,4 +40,22 @@
         android:layout_height="wrap_content"
         android:text="@string/note_solved_label"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/add_contact"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_contact_button" />
+
+        <Button
+            android:id="@+id/send_report"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/send_report_button" />
+    </LinearLayout>
+
 </LinearLayout>

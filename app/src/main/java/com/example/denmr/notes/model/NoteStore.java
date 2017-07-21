@@ -1,14 +1,18 @@
 package com.example.denmr.notes.model;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 
-import java.util.ArrayList;
+import com.example.denmr.notes.database.NoteBaseHelper;
+import com.example.denmr.notes.database.model.NoteCursorWrapper;
+
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.UUID;
+
+import static com.example.denmr.notes.database.model.NoteDbSchema.*;
 
 /**
  * Created by denmr on 25.06.2017.
@@ -16,17 +20,13 @@ import java.util.UUID;
 
 public class NoteStore {
     private static NoteStore instance;
-    private Map<UUID, Note> notes;
+    private Context mContext;
+    private SQLiteDatabase mDatabase;
 
     private NoteStore(Context context) {
-        notes = new LinkedHashMap<>();
-        for (int i = 0; i < 3; i++) {
-            Note newNote = new Note();
-            newNote.setTitle("Note #" + i);
-            newNote.setSolved(i % 2 == 0); // Every other one
-            newNote.setImportant(i % 2 == 0); // Every other one
-            notes.put(newNote.getId(), newNote);
-        }
+        mContext = context.getApplicationContext();
+        mDatabase = new NoteBaseHelper(mContext)
+                .getWritableDatabase();
     }
 
     public static NoteStore get(Context context) {
@@ -37,14 +37,77 @@ public class NoteStore {
     }
 
     public Map<UUID, Note> getNotes(){
+        Map<UUID, Note> notes = new HashMap<>();
+
+        try (NoteCursorWrapper cursor = queryNotes(null, null)) {
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                Note note = cursor.getNote();
+                notes.put(note.getId(), note);
+                cursor.moveToNext();
+            }
+        }
+
         return notes;
     }
 
     public Note getNote(UUID id){
-        return  notes.get(id);
+        try (NoteCursorWrapper cursor = queryNotes(
+                NoteTable.Cols.UUID + " = ?",
+                new String[]{id.toString()})
+        ) {
+            if (cursor.getCount() == 0) {
+                return null;
+            }
+
+            cursor.moveToFirst();
+            return cursor.getNote();
+        }
     }
 
     public void addNote(Note note) {
-        notes.put(note.getId(), note);
+        ContentValues values = getContentValues(note);
+
+        mDatabase.insert(NoteTable.NAME, null, values);
+    }
+
+    public void updateNote(Note note) {
+        String uuidString = note.getId().toString();
+        ContentValues values = getContentValues(note);
+
+        mDatabase.update(NoteTable.NAME, values,
+                NoteTable.Cols.UUID + " = ?",
+                new String[] { uuidString });
+    }
+
+    //TODO implement delete in controller
+    public void deleteNote(Note note){
+        String uuidString = note.getId().toString();
+        mDatabase.delete(NoteTable.NAME, NoteTable.Cols.UUID + " = ?", new String[] {uuidString});
+    }
+
+    private static ContentValues getContentValues(Note note) {
+        ContentValues values = new ContentValues();
+        values.put(NoteTable.Cols.UUID, note.getId().toString());
+        values.put(NoteTable.Cols.TITLE, note.getTitle());
+        values.put(NoteTable.Cols.DATE, note.getDate().getTime());
+        values.put(NoteTable.Cols.SOLVED, note.isSolved() ? 1 : 0);
+        values.put(NoteTable.Cols.CONTACT, note.getContact());
+
+        return values;
+    }
+
+    private NoteCursorWrapper queryNotes(String whereClause, String[] whereArgs) {
+        Cursor cursor = mDatabase.query(
+                NoteTable.NAME,
+                null, // columns - null selects all columns
+                whereClause,
+                whereArgs,
+                null, // groupBy
+                null, // having
+                null  // orderBy
+        );
+
+        return new NoteCursorWrapper(cursor);
     }
 }

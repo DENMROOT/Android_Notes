@@ -10,6 +10,7 @@ import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -58,6 +59,24 @@ public class NoteListFragment extends Fragment {
         inflater.inflate(R.menu.note_fragment_list_action_tab_menu, menu);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.new_note:
+                Note note = new Note();
+                NoteStore.get(getActivity()).addNote(note);
+                Intent intent = NotePagerActivity
+                        .newIntent(getActivity(), note.getId());
+                startActivity(intent);
+                return true;
+            case R.id.delete_note:
+                //TODO implement multiple notes deletion
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     /**
      * Override onResume to update note fragment list after any changes in notes
      */
@@ -75,6 +94,7 @@ public class NoteListFragment extends Fragment {
             mAdapter = new NoteAdapter(notes);
             mNoteRecyclerView.setAdapter(mAdapter);
         } else {
+            mAdapter.setNotes(notes);
             mAdapter.notifyItemChanged(position);
         }
     }
@@ -247,6 +267,10 @@ public class NoteListFragment extends Fragment {
         @Override
         public int getItemCount() {
             return mNotes.size();
+        }
+
+        public void setNotes(List<Note> notes) {
+            mNotes = notes;
         }
     }
 }
